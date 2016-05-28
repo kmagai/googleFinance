@@ -1,26 +1,21 @@
-package stock
+package googleFinance
 
 import (
 	"errors"
 	"fmt"
 	"io/ioutil"
 	"net/http"
+
+	"github.com/kmagai/fugo/lib"
 )
 
 const googleURL = "http://www.google.com/finance/info?infotype=infoquoteall&q=%s"
 
-// GoogleFinanceAPI is for Google Finance API access
-type GoogleFinanceAPI struct {
+type API struct {
 }
 
-// NewGoogleAPI is a factory method for googleFinanceAPI
-func NewGoogleAPI() GoogleFinanceAPI {
-	return GoogleFinanceAPI{}
-}
-
-// GetStock gets stock struct from google API
-// TODO: changed interface!!!!
-func (g GoogleFinanceAPI) GetStock(codes interface{}) (*[]Stock, error) {
+// GetStocks gets stock struct from google API
+func (api *API) GetStocks(codes interface{}) (*[]fugo.Stock, error) {
 	var query string
 	switch st := codes.(type) {
 	case string:
@@ -40,7 +35,7 @@ func (g GoogleFinanceAPI) GetStock(codes interface{}) (*[]Stock, error) {
 		return nil, errors.New("couldn't properly read response. It could be a problem with a remote host")
 	}
 
-	return parseToStocks(trimSlashes(stockJSON))
+	return fugo.ParseToStocks(trimSlashes(stockJSON))
 }
 
 // trimSlashes trims useless slashes in Google Finance API response

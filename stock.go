@@ -1,4 +1,5 @@
-package stock
+// TODO: fugo側でうまい具合にcast
+package googleFinance
 
 import (
 	"bytes"
