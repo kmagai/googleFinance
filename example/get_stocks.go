@@ -8,12 +8,12 @@ import (
 
 func main() {
 	api := googleFinance.API{}
-	code := "NI225" // Nikkei 225
-	stock, err := api.GetStock(code)
+	codes := []string{"GOOG", "AAPL", "9984"} // 9984 for SoftBank Group Corp
+	stocks, err := api.GetStocks(codes)
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
-	fmt.Println(stock)
+	fmt.Println(stocks)
 	return
 }

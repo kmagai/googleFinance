@@ -1,14 +1,15 @@
-// TODO: fugo側でうまい具合にcast
 package googleFinance
 
 import (
 	"bytes"
-	"encoding/json"
-	"errors"
+	"fmt"
+	"math"
 	"time"
+
+	"github.com/olekukonko/tablewriter"
 )
 
-// Stock stores stock data
+// Stock stores stock data from Google Finance API.
 type Stock struct {
 	Code          string    `json:"t"` // Depending on the market (f.g. integer code for TYO, ticker for NASDAQ...etc)
 	Name          string    `json:"name"`
@@ -18,14 +19,44 @@ type Stock struct {
 	UpdatedAt     time.Time `json:"lt_dts,string"`
 }
 
-// parseToStocks parses stock json data to its struct
-func parseToStocks(stockJSON []byte) (*[]Stock, error) {
-	s := bytes.NewReader(stockJSON)
-	var newStockData *[]Stock
-	dec := json.NewDecoder(s)
-	dec.Decode(&newStockData)
-	if newStockData == nil {
-		return nil, errors.New("failed to parse stock")
-	}
-	return newStockData, nil
+// GetCode is getter method for Stock's Code.
+func (stk *Stock) GetCode() string {
+	return stk.Code
+}
+
+// String defines what we get on printing Stock.
+func (stk Stock) String() string {
+	var buf bytes.Buffer
+
+	buf.WriteString("\n")
+	table := tablewriter.NewWriter(&buf)
+	table.SetHeader([]string{"CODE", "NAME", "PRICE", "CHANGE", "LAST_UPDATE"})
+	table.SetBorder(false)
+	table.SetAlignment(tablewriter.ALIGN_RIGHT)
+
+	const layout = "2006-01-02 15:04:05"
+	table.Append([]string{
+		stk.Code,
+		stk.Name,
+		fmt.Sprint(stk.Price),
+		fmt.Sprint(roundAt(stk.Change, 2)) + " (" + fmt.Sprint(roundAt(stk.ChangePercent, 2)) + "%)",
+		stk.UpdatedAt.Format(layout),
+	})
+	table.Render()
+	buf.WriteString("\n")
+	return buf.String()
+}
+
+// ToStocks takes Stock slices and parses it into a Stocks struct
+func (stk *Stock) ToStocks(stks []Stock) Stocks {
+	return Stocks(stks)
+}
+
+func roundAt(f float64, roundAt int) float64 {
+	shift := math.Pow(10, float64(roundAt))
+	return round(f*shift) / shift
+}
+
+func round(f float64) float64 {
+	return math.Floor(f + .5)
 }
